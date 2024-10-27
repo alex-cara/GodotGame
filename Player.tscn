@@ -1,0 +1,219 @@
+[gd_scene load_steps=15 format=2]
+
+[ext_resource path="res://Player.gd" type="Script" id=1]
+[ext_resource path="res://Adventurer Sprite Sheet v1.1.png" type="Texture" id=2]
+[ext_resource path="res://QuestionPopup.gd" type="Script" id=3]
+
+[sub_resource type="RectangleShape2D" id=10]
+extents = Vector2( 5.5, 9.375 )
+
+[sub_resource type="CapsuleShape2D" id=1]
+radius = 23.0
+height = 26.0
+
+[sub_resource type="Animation" id=11]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite/SwordHit/CollisionShape2D:disabled")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ true ]
+}
+
+[sub_resource type="Animation" id=12]
+resource_name = "Walk_Right"
+length = 0.5
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0.0107855, 0.0691851, 0.127713, 0.184636, 0.24575, 0.29961, 0.360818, 0.41499 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ 13, 14, 15, 16, 17, 18, 19, 20 ]
+}
+
+[sub_resource type="Animation" id=13]
+resource_name = "light_attack_anim"
+length = 0.5
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0.00453685, 0.0411341, 0.0810162, 0.117656, 0.155765, 0.197504, 0.238638, 0.29913, 0.356596, 0.400755, 0.445519 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ 26, 27, 33, 28, 29, 30, 31, 32, 33, 34, 35 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite/SwordHit/CollisionShape2D:disabled")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.117958, 0.238941 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ true, false, true ]
+}
+
+[sub_resource type="AnimationNodeAnimation" id=6]
+animation = "Walk_Right"
+
+[sub_resource type="AnimationNodeAnimation" id=7]
+animation = "light_attack_anim"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id=8]
+priority = 0
+
+[sub_resource type="AnimationNodeStateMachineTransition" id=9]
+switch_mode = 2
+auto_advance = true
+
+[sub_resource type="AnimationNodeStateMachine" id=14]
+states/Walk_Right/node = SubResource( 6 )
+states/Walk_Right/position = Vector2( 219.667, 87 )
+states/light_attack_anim/node = SubResource( 7 )
+states/light_attack_anim/position = Vector2( 373, 192.333 )
+transitions = [ "Walk_Right", "light_attack_anim", SubResource( 8 ), "light_attack_anim", "Walk_Right", SubResource( 9 ) ]
+start_node = "Walk_Right"
+
+[sub_resource type="AnimationNodeStateMachinePlayback" id=15]
+
+[node name="Player" type="KinematicBody2D" groups=["Net", "Player"]]
+pause_mode = 1
+collision_mask = 8
+script = ExtResource( 1 )
+
+[node name="Shoot_point" type="Position2D" parent="."]
+position = Vector2( 24, -12 )
+
+[node name="Sprite" type="Sprite" parent="."]
+position = Vector2( 2, -13 )
+scale = Vector2( 3, 3 )
+texture = ExtResource( 2 )
+hframes = 13
+vframes = 16
+frame = 20
+
+[node name="SwordHit" type="Area2D" parent="Sprite"]
+position = Vector2( 12, 6 )
+collision_layer = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sprite/SwordHit"]
+position = Vector2( 0.666667, 0 )
+shape = SubResource( 10 )
+disabled = true
+
+[node name="Tween" type="Tween" parent="."]
+
+[node name="Network_tick_rate" type="Timer" parent="."]
+pause_mode = 2
+wait_time = 0.03
+autostart = true
+
+[node name="Reload_timer" type="Timer" parent="."]
+wait_time = 0.15
+one_shot = true
+
+[node name="Hit_timer" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource( 1 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 0, 1 )
+shape = SubResource( 1 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "Walk_Right"
+anims/RESET = SubResource( 11 )
+anims/Walk_Right = SubResource( 12 )
+anims/light_attack_anim = SubResource( 13 )
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
+tree_root = SubResource( 14 )
+anim_player = NodePath("../AnimationPlayer")
+active = true
+parameters/playback = SubResource( 15 )
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+pause_mode = 2
+layer = 20
+
+[node name="QuestionPopup" type="PopupDialog" parent="CanvasLayer"]
+pause_mode = 2
+visible = true
+light_mask = 524288
+margin_left = -105.0
+margin_top = -86.0
+margin_right = 569.0
+margin_bottom = 337.0
+script = ExtResource( 3 )
+
+[node name="PromptContainer" type="VBoxContainer" parent="CanvasLayer/QuestionPopup"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Label" type="Label" parent="CanvasLayer/QuestionPopup/PromptContainer"]
+margin_right = 674.0
+margin_bottom = 14.0
+text = "What is 1 + 1?"
+align = 1
+valign = 1
+
+[node name="ChoiceA" type="ToolButton" parent="CanvasLayer/QuestionPopup/PromptContainer"]
+margin_top = 18.0
+margin_right = 674.0
+margin_bottom = 40.0
+custom_colors/font_color = Color( 1, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 0, 0, 1 )
+
+[node name="ChoiceB" type="ToolButton" parent="CanvasLayer/QuestionPopup/PromptContainer"]
+margin_top = 44.0
+margin_right = 674.0
+margin_bottom = 66.0
+text = "B) 3"
+
+[node name="ChoiceC" type="ToolButton" parent="CanvasLayer/QuestionPopup/PromptContainer"]
+margin_top = 70.0
+margin_right = 674.0
+margin_bottom = 92.0
+text = "C) 4"
+
+[node name="ChoiceD" type="ToolButton" parent="CanvasLayer/QuestionPopup/PromptContainer"]
+margin_top = 96.0
+margin_right = 674.0
+margin_bottom = 118.0
+text = "D) 6"
+
+[connection signal="timeout" from="Network_tick_rate" to="." method="_on_Network_tick_rate_timeout"]
+[connection signal="timeout" from="Reload_timer" to="." method="_on_Reload_timer_timeout"]
+[connection signal="timeout" from="Hit_timer" to="." method="_on_Hit_timer_timeout"]
+[connection signal="area_entered" from="Hitbox" to="." method="_on_Hitbox_area_entered"]
+[connection signal="about_to_show" from="CanvasLayer/QuestionPopup" to="CanvasLayer/QuestionPopup" method="_on_QuestionPopup_about_to_show"]
+[connection signal="button_down" from="CanvasLayer/QuestionPopup/PromptContainer/ChoiceA" to="CanvasLayer/QuestionPopup" method="_on_ChoiceA_button_down"]
+[connection signal="button_down" from="CanvasLayer/QuestionPopup/PromptContainer/ChoiceB" to="CanvasLayer/QuestionPopup" method="_on_ChoiceB_button_down"]
+[connection signal="button_down" from="CanvasLayer/QuestionPopup/PromptContainer/ChoiceC" to="CanvasLayer/QuestionPopup" method="_on_ChoiceC_button_down"]
+[connection signal="button_down" from="CanvasLayer/QuestionPopup/PromptContainer/ChoiceD" to="CanvasLayer/QuestionPopup" method="_on_ChoiceD_button_down"]
